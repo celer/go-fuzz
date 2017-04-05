@@ -27,6 +27,7 @@ var (
 	flagTag  = flag.String("tags", "", "a space-separated list of build tags to consider satisfied during the build")
 	flagOut  = flag.String("o", "", "output file")
 	flagFunc = flag.String("func", "Fuzz", "entry function")
+	flagTearDownFunc = flag.String("teardown-func", "", "tear down function")
 	flagWork = flag.Bool("work", false, "don't remove working directory")
 
 	workdir string
@@ -238,6 +239,11 @@ func createFuzzMain(pkg string) string {
 	path := filepath.Join(workdir, "gopath", "src", mainPkg)
 	mkdirAll(path)
 	src := fmt.Sprintf(mainSrc, pkg, *flagFunc)
+	if *flagTearDownFunc!="" {
+		src = strings.Replace(src, "TEARDOWN",fmt.Sprintf("target.%v()",*flagTearDownFunc),-1)
+	} else {
+		src = strings.Replace(src, "TEARDOWN","",-1)
+	}
 	writeFile(filepath.Join(path, "main.go"), []byte(src))
 	return mainPkg
 }
@@ -543,5 +549,7 @@ import (
 
 func main() {
 	dep.Main(target.%v)
+	TEARDOWN
 }
 `
+
