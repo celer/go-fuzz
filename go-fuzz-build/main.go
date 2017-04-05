@@ -548,8 +548,10 @@ import (
 )
 
 func main() {
+	defer func(){	
+		TEARDOWN
+	}()
 	dep.Main(target.%v)
-	TEARDOWN
 }
 `
 
